@@ -1,3 +1,5 @@
+using CSharpClicker.Web.Initializers;
+
 namespace CSharpClicker.Web
 {
     public class Program
@@ -10,6 +12,16 @@ namespace CSharpClicker.Web
             app.MapGet("/", () => "Hello World!");
 
             app.Run();
+        }
+
+        private static void ConfigureServices(IServiceCollection services)
+        {
+            services.AddHealthChecks();
+            //services.AddIdentity<ApplicationUser, ApplicationRole>()
+            //    .AddEntityFrameworkStores<AppDbContext>()
+            //    .AddDefaultTokenProviders();
+
+            DbContextInitializer.InitializeDbContext(services);
         }
     }
 }
