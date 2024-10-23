@@ -1,3 +1,4 @@
+using CSharpClicker.Web.Infrastructure.DataAccess;
 using CSharpClicker.Web.Initializers;
 
 namespace CSharpClicker.Web
@@ -7,7 +8,25 @@ namespace CSharpClicker.Web
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            ConfigureServices(builder.Services);
+
             var app = builder.Build();
+
+            using var scope = app.Services.CreateScope();
+            using var appDbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            DbContextInitializer.InitializeDbContext(appDbContext);
+
+            //app.MapControllers();
+
+            app.UseMvc();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.MapGet("/", () => "Hello World!");
 
@@ -17,11 +36,15 @@ namespace CSharpClicker.Web
         private static void ConfigureServices(IServiceCollection services)
         {
             services.AddHealthChecks();
-            //services.AddIdentity<ApplicationUser, ApplicationRole>()
-            //    .AddEntityFrameworkStores<AppDbContext>()
-            //    .AddDefaultTokenProviders();
+            services.AddSwaggerGen();
+            services.AddAuthentication();
+            services.AddAuthorization();
+            services.AddMediatR(o => o.RegisterServicesFromAssemblies(typeof(Program).Assembly));
+            services.AddMvcCore(o => o.EnableEndpointRouting = false)
+                .AddApiExplorer();
 
-            DbContextInitializer.InitializeDbContext(services);
+            IdentityInitializer.AddIdentity(services);
+            DbContextInitializer.AddAppDbContext(services);
         }
     }
 }
